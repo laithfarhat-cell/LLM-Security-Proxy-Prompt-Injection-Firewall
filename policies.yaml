@@ -1,0 +1,69 @@
+# LLM Security Proxy & Prompt Injection Firewall Policy Configuration
+
+proxy:
+  upstream_url: "http://localhost:8001/v1/chat/completions"
+  timeout_seconds: 60.0
+  stream_inspection_window_chars: 256
+
+telemetry:
+  log_file: "firewall_events.json"
+  service_name: "llm-security-proxy"
+  environment: "production"
+
+injection_firewall:
+  mode: "BLOCK" # Options: BLOCK, REDACT, AUDIT_ONLY
+  risk_threshold: 0.65
+  semantic_weight: 0.55
+  lexical_weight: 0.45
+  embedding_model: "all-MiniLM-L6-v2"
+  corpus_path: "data/attack_corpus.json"
+  canary:
+    enabled: true
+    prefix: "CANARY-"
+
+dlp:
+  mode: "REDACT" # Options: BLOCK, REDACT, AUDIT_ONLY
+  rehydrate_egress: true
+  scan_egress: true
+  entropy_threshold: 4.5
+  rules:
+    openai_api_key:
+      enabled: true
+      severity: "critical"
+      action: "REDACT"
+    aws_access_key:
+      enabled: true
+      severity: "critical"
+      action: "REDACT"
+    github_token:
+      enabled: true
+      severity: "critical"
+      action: "REDACT"
+    bearer_jwt:
+      enabled: true
+      severity: "high"
+      action: "REDACT"
+    private_key:
+      enabled: true
+      severity: "critical"
+      action: "BLOCK"
+    email:
+      enabled: true
+      severity: "medium"
+      action: "REDACT"
+    ssn:
+      enabled: true
+      severity: "critical"
+      action: "REDACT"
+    credit_card:
+      enabled: true
+      severity: "critical"
+      action: "REDACT"
+    phone:
+      enabled: true
+      severity: "low"
+      action: "REDACT"
+    ipv4:
+      enabled: true
+      severity: "low"
+      action: "REDACT"
